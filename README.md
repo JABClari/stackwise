@@ -121,9 +121,9 @@ stackwise scan . --skip performance/use-effect-static-fetch,ux/hardcoded-coming-
 
 ## Reference implementation
 
-The GreenSquare session that shaped every design decision in this tool:
+The session that shaped every design decision in this tool:
 
-[examples/greensquare/session-log.md](examples/greensquare/session-log.md)
+[examples/thesquareapp/session-log.md](examples/thesquareapp/session-log.md)
 
 ---
 
