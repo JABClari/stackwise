@@ -97,23 +97,29 @@ const exposedServiceKey: Rule = {
 
     for (const file of files) {
       const lines = await readFileLines(file)
-      let isServerSafe = false
+      const fileContent = lines.join('\n')
+
+      // Skip files that are legitimately server-only:
+      // - anything inside /api/ (Next.js API routes run only on the server)
+      // - files with "use server" directive
+      // - lib/supabase/server.ts is the canonical place to define createAdminClient
+      const normalised = file.replace(/\\/g, '/')
+      const isServerSafe =
+        normalised.includes('/api/') ||
+        normalised.includes('supabase/server') ||
+        fileContent.includes('"use server"') ||
+        fileContent.includes("'use server'")
+
+      if (isServerSafe) continue
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i]
-        if (
-          line.includes('"use server"') ||
-          line.includes("'use server'") ||
-          file.includes('/api/')
-        ) {
-          isServerSafe = true
-        }
-        if (line.includes('SUPABASE_SERVICE_ROLE_KEY') && !isServerSafe) {
+        if (line.includes('SUPABASE_SERVICE_ROLE_KEY')) {
           matches.push({
             file,
             line: i + 1,
             matchedText: line.trim(),
-            context: 'Service role key in non-server-safe file',
+            context: 'Service role key in non-server-safe file — will be bundled client-side',
           })
         }
       }
