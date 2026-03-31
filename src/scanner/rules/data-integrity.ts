@@ -164,8 +164,63 @@ const missingEmptyStateFallback: Rule = {
   },
 }
 
+// Detects const X = X (self-referencing initializer) — guaranteed TDZ crash at
+// module evaluation. Happens when a refactor tool does a replace-all on a
+// variable name without skipping the declaration site.
+// Grounded in: janecando — COLUMN_SKELETONS = COLUMN_SKELETONS caused prerender crash
+const selfReferencingConst: Rule = {
+  id: 'data-integrity/self-referencing-const',
+  title: 'const initializer references itself — guaranteed TDZ crash',
+  category: 'data-integrity',
+  severity: 5,
+  effort: 1,
+  blastRadius: 5,
+  description:
+    'A const declaration whose initializer references its own name will throw ' +
+    '"Cannot access X before initialization" at module evaluation time. ' +
+    'This crashes every page that imports this module, including prerendering. ' +
+    'Typically caused by a replace-all refactor that replaced the value inside ' +
+    'the declaration itself.',
+  suggestedFix:
+    'Replace the initializer with the actual value: e.g. const X = [0,1,2,3,4] ' +
+    'instead of const X = X.',
+
+  async scan(projectPath: string, _config: StackwiseConfig): Promise<RuleMatch[]> {
+    const matches: RuleMatch[] = []
+
+    const files = await findFiles(projectPath, [
+      'app/**/*.tsx',
+      'app/**/*.ts',
+      'components/**/*.tsx',
+      'components/**/*.ts',
+      'lib/**/*.ts',
+    ])
+
+    for (const file of files) {
+      const lines = await readFileLines(file)
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i]
+        // Match: const IDENTIFIER = IDENTIFIER (same name, no other tokens)
+        const m = line.match(/^\s*const\s+(\w+)\s*=\s*(\w+)\s*$/)
+        if (m && m[1] === m[2]) {
+          matches.push({
+            file,
+            line: i + 1,
+            matchedText: line.trim(),
+            context: `const ${m[1]} references itself — TDZ crash at module load`,
+          })
+        }
+      }
+    }
+
+    return matches
+  },
+}
+
 export const dataIntegrityRules: Rule[] = [
   silentFilterDataLoss,
   expensiveStateInitializer,
   missingEmptyStateFallback,
+  selfReferencingConst,
 ]
