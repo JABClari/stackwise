@@ -1,4 +1,4 @@
-# Reference Implementation: GreenSquare Session
+# Reference Implementation: TheSquareApp Session
 
 This is the real session that shaped the stackwise design.
 Every rule, scoring weight, and phase pattern in the tool can be traced back to something that happened here.
@@ -7,8 +7,8 @@ Every rule, scoring weight, and phase pattern in the tool can be traced back to 
 
 ## The Project
 
-GreenSquare — a Next.js App Router + Supabase job board for Ghana.
-Stack: Next.js 14, Supabase (Postgres + Storage + RLS), TypeScript, Tailwind.
+TheSquareApp — a Next.js App Router + Supabase job board.
+Stack: Next.js 16, Supabase (Postgres + Storage + RLS), TypeScript, Tailwind.
 
 ---
 
